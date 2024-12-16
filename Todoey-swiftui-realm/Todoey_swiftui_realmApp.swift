@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import RealmSwift
 
 @main
-struct Todoey_swiftui_realmApp: App {
+struct Todoey_swiftui_realmApp: SwiftUI.App {
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

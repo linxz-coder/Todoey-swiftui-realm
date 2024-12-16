@@ -1,67 +1,56 @@
 import SwiftUI
+import RealmSwift
 
 struct ContentView: View {
-    
-    
+    @ObservedResults(Item.self) var items
+    @State private var showingAddSheet = false
     
     var body: some View {
-        
-        let item1 = Item()
-        item1.title = "buy food"
-        item1.done = false
-        
-        let item2 = Item()
-        item2.title = "Eat food"
-        item2.done = false
-        
-        let item3 = Item()
-        item3.title = "Enjoy food"
-        item3.done = false
-        
-        let item4 = Item()
-        item4.title = "Discard food"
-        item4.done = false
-        
-        
-        @State var data = [
-            item1,
-            item2,
-            item3,
-            item4,
-        ]
-        
-        NavigationView{
-            //MARK: - itemView
-            List(data.indices, id: \.self) { index in
+        NavigationStack {  // 使用 NavigationStack 替代 NavigationView
+            VStack(spacing: 0) {
+                // 自定义导航栏
                 HStack {
-                    Text(data[index].title)
-                    Spacer()
-                    if data[index].done {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.green)
-                    }
+                    Text("待办清单")
+                        .font(.largeTitle)
+                        .padding(.leading, 20)
                     
+                    Spacer()
+                    
+                    Button {
+                        print("Button tapped")
+                        showingAddSheet.toggle()
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 22))
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.trailing, 20)
                 }
-            }
-            //点击手势
-            .contentShape(Rectangle())
-            .onTapGesture {
-                data[index].done = true
-            }
-            
-            //MARK: - title
-            .navigationTitle("")
-            .toolbar{
-                ToolbarItem(placement: .principal){
-                    HStack {
-                        Text("待办清单")
-                            .font(.largeTitle)
-                            .padding(.leading, 20)
-                            .padding(.top, 80)
-                        Spacer()
+                .padding(.top, 60)
+                .padding(.bottom, 10)
+                
+                // 列表内容
+                List {
+                    ForEach(items, id: \.self) { item in
+                        Toggle(item.title, isOn: Binding(
+                            get: { item.done },
+                            set: { newValue in
+                                if let thawedItem = item.thaw() {
+                                    try? thawedItem.realm?.write {
+                                        thawedItem.done = newValue
+                                    }
+                                }
+                            }
+                        ))
+                        .toggleStyle(CheckboxToggleStyle())
+                        .frame(height: 60)
                     }
                 }
             }
+            .navigationBarHidden(true)  // 隐藏默认导航栏
+        }
+        .sheet(isPresented: $showingAddSheet) {
+            AddItemView(isPresented: $showingAddSheet)
         }
     }
 }
