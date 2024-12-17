@@ -6,9 +6,8 @@ struct ContentView: View {
     @State private var showingAddSheet = false
     
     var body: some View {
-        NavigationStack {  // 使用 NavigationStack 替代 NavigationView
-            VStack(spacing: 0) {
-                // 自定义导航栏
+        NavigationStack {
+            VStack {
                 HStack {
                     Text("待办清单")
                         .font(.largeTitle)
@@ -44,6 +43,17 @@ struct ContentView: View {
                         ))
                         .toggleStyle(CheckboxToggleStyle())
                         .frame(height: 60)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                if let thawedItem = item.thaw() {
+                                    try? thawedItem.realm?.write {
+                                        thawedItem.realm?.delete(thawedItem)
+                                    }
+                                }
+                            } label: {
+                                Label("删除", systemImage: "trash")
+                            }
+                        }
                     }
                 }
             }
